@@ -1,15 +1,27 @@
 {
   "name": "smart-commit",
   "displayName": "Smart Commit",
-  "description": "AI-powered auto git commits with smart message generation. Supports AWS Bedrock and Google Gemini.",
-  "version": "0.1.0",
+  "description": "AI-powered auto git commits with smart message generation. Uses the editor's built-in LLM by default; also supports AWS Bedrock and Google Gemini.",
+  "version": "0.2.0",
   "publisher": "smart-commit",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.109.0"
   },
-  "categories": ["Other"],
-  "keywords": ["git", "commit", "ai", "auto-commit", "gemini", "bedrock"],
-  "activationEvents": ["workspaceContains:.git"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "auto-commit",
+    "gemini",
+    "bedrock",
+    "copilot"
+  ],
+  "activationEvents": [
+    "workspaceContains:.git"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -47,7 +59,10 @@
         },
         "smartCommit.commitStyle": {
           "type": "string",
-          "enum": ["conventional", "descriptive"],
+          "enum": [
+            "conventional",
+            "descriptive"
+          ],
           "enumDescriptions": [
             "Conventional Commits format: feat(scope): description",
             "Plain imperative summary with optional bullet-point body"
@@ -57,23 +72,43 @@
         },
         "smartCommit.llmProvider": {
           "type": "string",
-          "enum": ["bedrock", "gemini"],
-          "enumDescriptions": [
-            "AWS Bedrock — use any Bedrock-compatible model with your AWS credentials",
-            "Google Gemini — use the Gemini API with an API key"
+          "enum": [
+            "vscode",
+            "gemini",
+            "bedrock"
           ],
-          "default": "gemini",
-          "description": "LLM provider for commit message generation."
+          "enumDescriptions": [
+            "VS Code built-in LM API — uses the model already available in your editor (Cursor, Anti-Gravity, Copilot). No credentials needed.",
+            "Google Gemini API — requires an API key in smartCommit.gemini.apiKey.",
+            "AWS Bedrock — requires AWS credentials in smartCommit.bedrock.* settings."
+          ],
+          "default": "vscode",
+          "description": "LLM provider for commit message generation. Defaults to the editor's built-in model — no setup required."
+        },
+        "smartCommit.vscode.modelFamily": {
+          "type": "string",
+          "default": "",
+          "description": "Optional: preferred model family for the VS Code LM provider (e.g. 'gpt-4o', 'claude-3.5-sonnet', 'gemini'). Leave empty to use whichever model the editor has available."
+        },
+        "smartCommit.gemini.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google Gemini API key. Required when smartCommit.llmProvider is 'gemini'. Get a key at https://aistudio.google.com/apikey."
+        },
+        "smartCommit.gemini.modelId": {
+          "type": "string",
+          "default": "gemini-2.0-flash",
+          "description": "Gemini model ID (e.g. gemini-2.0-flash, gemini-1.5-pro). Used when smartCommit.llmProvider is 'gemini'."
         },
         "smartCommit.bedrock.region": {
           "type": "string",
           "default": "us-east-1",
-          "description": "AWS region where Bedrock is available."
+          "description": "AWS region where Bedrock is available. Used when smartCommit.llmProvider is 'bedrock'."
         },
         "smartCommit.bedrock.modelId": {
           "type": "string",
           "default": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "description": "Bedrock model ID (e.g. anthropic.claude-3-5-sonnet-20241022-v2:0, amazon.titan-text-premier-v1:0)."
+          "description": "Bedrock model ID. Used when smartCommit.llmProvider is 'bedrock'."
         },
         "smartCommit.bedrock.accessKeyId": {
           "type": "string",
@@ -89,16 +124,6 @@
           "type": "string",
           "default": "",
           "description": "AWS Session Token (optional — only needed for temporary STS credentials)."
-        },
-        "smartCommit.gemini.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "Google Gemini API key (https://aistudio.google.com/apikey)."
-        },
-        "smartCommit.gemini.modelId": {
-          "type": "string",
-          "default": "gemini-2.0-flash",
-          "description": "Gemini model ID (e.g. gemini-2.0-flash, gemini-1.5-pro)."
         }
       }
     }
@@ -113,7 +138,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.109.0",
     "@vscode/vsce": "^2.22.0",
     "esbuild": "^0.20.0",
     "typescript": "^5.3.0"
