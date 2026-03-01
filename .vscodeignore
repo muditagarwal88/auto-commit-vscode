@@ -9,6 +9,5 @@ node_modules/
 
 # Misc
 .vscode/
-.claude/
 .gitignore
 *.map

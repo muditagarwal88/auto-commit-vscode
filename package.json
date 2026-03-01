@@ -88,7 +88,7 @@
         "smartCommit.vscode.modelFamily": {
           "type": "string",
           "default": "",
-          "description": "Optional: preferred model family for the VS Code LM provider (e.g. 'gpt-4o', 'claude-3.5-sonnet', 'gemini'). Leave empty to use whichever model the editor has available."
+          "description": "Optional: preferred model family for the VS Code LM provider (e.g. 'gpt-4o', 'gemini'). Leave empty to use whichever model the editor has available."
         },
         "smartCommit.gemini.apiKey": {
           "type": "string",

@@ -12,7 +12,7 @@ import type { LLMProvider } from "./provider";
  * No API keys or credentials needed — the editor handles auth.
  *
  * Optionally filter to a preferred model family via
- * `smartCommit.vscode.modelFamily` (e.g. "gpt-4o", "claude-3.5-sonnet").
+ * `smartCommit.vscode.modelFamily` (e.g. "gpt-4o", "gemini").
  * Leave empty to use whatever the editor has available.
  */
 export class VscodeLMProvider implements LLMProvider {
