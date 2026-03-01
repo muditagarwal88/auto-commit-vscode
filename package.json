@@ -1,0 +1,125 @@
+{
+  "name": "smart-commit",
+  "displayName": "Smart Commit",
+  "description": "AI-powered auto git commits with smart message generation. Supports AWS Bedrock and Google Gemini.",
+  "version": "0.1.0",
+  "publisher": "smart-commit",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["git", "commit", "ai", "auto-commit", "gemini", "bedrock"],
+  "activationEvents": ["workspaceContains:.git"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "smartCommit.enable",
+        "title": "Smart Commit: Enable"
+      },
+      {
+        "command": "smartCommit.disable",
+        "title": "Smart Commit: Disable"
+      },
+      {
+        "command": "smartCommit.commitNow",
+        "title": "Smart Commit: Commit Now"
+      }
+    ],
+    "configuration": {
+      "title": "Smart Commit",
+      "properties": {
+        "smartCommit.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto-commit after each file save (with debounce)."
+        },
+        "smartCommit.debounceSeconds": {
+          "type": "number",
+          "default": 45,
+          "minimum": 10,
+          "description": "Seconds of inactivity after the last save before a commit is triggered."
+        },
+        "smartCommit.autoStageAll": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically stage all changes (git add -A) before committing."
+        },
+        "smartCommit.commitStyle": {
+          "type": "string",
+          "enum": ["conventional", "descriptive"],
+          "enumDescriptions": [
+            "Conventional Commits format: feat(scope): description",
+            "Plain imperative summary with optional bullet-point body"
+          ],
+          "default": "conventional",
+          "description": "Style of the generated commit message."
+        },
+        "smartCommit.llmProvider": {
+          "type": "string",
+          "enum": ["bedrock", "gemini"],
+          "enumDescriptions": [
+            "AWS Bedrock — use any Bedrock-compatible model with your AWS credentials",
+            "Google Gemini — use the Gemini API with an API key"
+          ],
+          "default": "gemini",
+          "description": "LLM provider for commit message generation."
+        },
+        "smartCommit.bedrock.region": {
+          "type": "string",
+          "default": "us-east-1",
+          "description": "AWS region where Bedrock is available."
+        },
+        "smartCommit.bedrock.modelId": {
+          "type": "string",
+          "default": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "description": "Bedrock model ID (e.g. anthropic.claude-3-5-sonnet-20241022-v2:0, amazon.titan-text-premier-v1:0)."
+        },
+        "smartCommit.bedrock.accessKeyId": {
+          "type": "string",
+          "default": "",
+          "description": "AWS Access Key ID. Leave empty to use IAM role, environment variables, or ~/.aws/credentials."
+        },
+        "smartCommit.bedrock.secretAccessKey": {
+          "type": "string",
+          "default": "",
+          "description": "AWS Secret Access Key. Leave empty to use IAM role, environment variables, or ~/.aws/credentials."
+        },
+        "smartCommit.bedrock.sessionToken": {
+          "type": "string",
+          "default": "",
+          "description": "AWS Session Token (optional — only needed for temporary STS credentials)."
+        },
+        "smartCommit.gemini.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google Gemini API key (https://aistudio.google.com/apikey)."
+        },
+        "smartCommit.gemini.modelId": {
+          "type": "string",
+          "default": "gemini-2.0-flash",
+          "description": "Gemini model ID (e.g. gemini-2.0-flash, gemini-1.5-pro)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build": "node esbuild.js",
+    "build:watch": "node esbuild.js --watch",
+    "package": "npm run build && vsce package",
+    "install-ext": "npm run package && code --install-extension smart-commit-*.vsix"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.500.0",
+    "@google/generative-ai": "^0.21.0"
+  }
+}

@@ -1,0 +1,14 @@
+# Source — only ship the compiled bundle
+src/
+tsconfig.json
+esbuild.js
+.eslintrc*
+
+# Dev dependencies are bundled by esbuild, so node_modules is not needed
+node_modules/
+
+# Misc
+.vscode/
+.claude/
+.gitignore
+*.map
