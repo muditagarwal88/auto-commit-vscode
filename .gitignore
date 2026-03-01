@@ -3,3 +3,15 @@ out/
 *.vsix
 *.js.map
 .DS_Store
+
+# Secrets & credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+aws-credentials.json
+.aws/
