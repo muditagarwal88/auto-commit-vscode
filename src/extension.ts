@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { SaveWatcher } from "./watcher";
 import { stageAll, getStagedDiff, commit, hasChanges, getRepoRoot } from "./gitHelper";
-import { generateCommitMessage } from "./commitGenerator";
+import { generateCommitMessage, CommitStyle } from "./commitGenerator";
 
 let watcher: SaveWatcher | undefined;
 let statusBar: vscode.StatusBarItem;
@@ -75,7 +75,7 @@ export function deactivate(): void {
 
 async function triggerCommit(repoRoot: string): Promise<void> {
   const cfg = vscode.workspace.getConfiguration("smartCommit");
-  const style = cfg.get<string>("commitStyle", "conventional");
+  const style = cfg.get<CommitStyle>("commitStyle", "conventional");
 
   try {
     // 1. Stage everything if configured to do so

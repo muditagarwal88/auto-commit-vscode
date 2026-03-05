@@ -1,21 +1,30 @@
-import { execSync, ExecSyncOptions } from "child_process";
+import { spawnSync } from "child_process";
 
-const EXEC_OPTS: ExecSyncOptions = {
-  encoding: "utf8",
-  stdio: ["pipe", "pipe", "pipe"],
-};
+/**
+ * Run a git command using spawnSync with an explicit arg array — no shell
+ * involved, so there is zero risk of shell injection regardless of the
+ * content of repoPath or any argument.
+ */
+function git(repoPath: string, args: string[]): string {
+  const result = spawnSync("git", ["-C", repoPath, ...args], {
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
 
-function git(repoPath: string, args: string): string {
-  // Use -C to run in the repo directory without cd
-  return (
-    execSync(`git -C "${repoPath}" ${args}`, EXEC_OPTS) as string
-  ).trim();
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(result.stderr?.trim() || `git exited with code ${result.status}`);
+  }
+
+  return (result.stdout as string).trim();
 }
 
 /** True if there are any staged or unstaged changes in the repo. */
 export function hasChanges(repoPath: string): boolean {
   try {
-    return git(repoPath, "status --porcelain").length > 0;
+    return git(repoPath, ["status", "--porcelain"]).length > 0;
   } catch {
     return false;
   }
@@ -23,7 +32,7 @@ export function hasChanges(repoPath: string): boolean {
 
 /** Stage all changes (git add -A). */
 export function stageAll(repoPath: string): void {
-  git(repoPath, "add -A");
+  git(repoPath, ["add", "-A"]);
 }
 
 /**
@@ -32,7 +41,7 @@ export function stageAll(repoPath: string): void {
  */
 export function getStagedDiff(repoPath: string): string {
   try {
-    const diff = git(repoPath, "diff --cached --unified=3");
+    const diff = git(repoPath, ["diff", "--cached", "--unified=3"]);
     const MAX = 6000;
     return diff.length > MAX
       ? diff.slice(0, MAX) + "\n\n... (diff truncated for LLM context)"
@@ -44,14 +53,21 @@ export function getStagedDiff(repoPath: string): string {
 
 /**
  * Commit with the given message.
- * The message is passed via stdin (-F -) to avoid any shell-injection risk.
+ * Uses spawnSync with stdin to avoid any shell-injection risk.
  */
 export function commit(repoPath: string, message: string): void {
-  execSync(`git -C "${repoPath}" commit -F -`, {
+  const result = spawnSync("git", ["-C", repoPath, "commit", "-F", "-"], {
     input: message,
     encoding: "utf8",
     stdio: ["pipe", "pipe", "pipe"],
   });
+
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(result.stderr?.trim() || `git commit failed with code ${result.status}`);
+  }
 }
 
 /**
@@ -60,7 +76,7 @@ export function commit(repoPath: string, message: string): void {
  */
 export function getRepoRoot(dirPath: string): string | null {
   try {
-    return git(dirPath, "rev-parse --show-toplevel");
+    return git(dirPath, ["rev-parse", "--show-toplevel"]);
   } catch {
     return null;
   }

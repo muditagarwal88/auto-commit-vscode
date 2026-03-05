@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import type { LLMProvider } from "./provider";
 
+const REQUEST_TIMEOUT_MS = 30_000; // 30 seconds
+
 /**
  * Uses the editor's built-in Language Model API (vscode.lm).
  *
@@ -30,8 +32,8 @@ export class VscodeLMProvider implements LLMProvider {
       throw new Error(
         this.modelFamily
           ? `No language model matching family "${this.modelFamily}" is available.\n` +
-            'Clear smartCommit.vscode.modelFamily to use any available model, ' +
-            'or switch to the Gemini / Bedrock provider in Smart Commit settings.'
+            "Clear smartCommit.vscode.modelFamily to use any available model, " +
+            "or switch to the Gemini / Bedrock provider in Smart Commit settings."
           : "No language model is available in this editor.\n" +
             "• VS Code: install the GitHub Copilot extension.\n" +
             "• Cursor / Anti-Gravity: make sure you are signed in.\n" +
@@ -41,6 +43,9 @@ export class VscodeLMProvider implements LLMProvider {
 
     const model = models[0];
     const cts = new vscode.CancellationTokenSource();
+
+    // Auto-cancel if the model takes too long
+    const timeoutId = setTimeout(() => cts.cancel(), REQUEST_TIMEOUT_MS);
 
     try {
       const response = await model.sendRequest(
@@ -60,6 +65,7 @@ export class VscodeLMProvider implements LLMProvider {
 
       return text.trim();
     } finally {
+      clearTimeout(timeoutId);
       cts.dispose();
     }
   }

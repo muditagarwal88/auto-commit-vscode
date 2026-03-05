@@ -22,5 +22,8 @@ if (isWatch) {
 } else {
   esbuild.build(buildOptions).then(() => {
     console.log("Build complete.");
-  }).catch(() => process.exit(1));
+  }).catch((err) => {
+    console.error("Build failed:", err);
+    process.exit(1);
+  });
 }

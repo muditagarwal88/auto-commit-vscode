@@ -1,5 +1,7 @@
 import { createProvider } from "./llm";
 
+export type CommitStyle = "conventional" | "descriptive";
+
 // ---------------------------------------------------------------------------
 // Prompt templates
 // ---------------------------------------------------------------------------
@@ -59,7 +61,7 @@ ${diff}
  */
 export async function generateCommitMessage(
   diff: string,
-  style: string
+  style: CommitStyle
 ): Promise<string> {
   if (!diff.trim()) {
     throw new Error("Diff is empty — nothing to commit.");

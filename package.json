@@ -50,6 +50,7 @@
           "type": "number",
           "default": 45,
           "minimum": 10,
+          "maximum": 3600,
           "description": "Seconds of inactivity after the last save before a commit is triggered."
         },
         "smartCommit.autoStageAll": {

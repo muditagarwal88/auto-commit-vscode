@@ -60,8 +60,11 @@ export class BedrockProvider implements LLMProvider {
     const content = response.output?.message?.content ?? [];
 
     // ConverseCommand returns a union of block types; extract all text blocks
+    // using an explicit type guard — no unsafe type assertions
     const text = content
-      .map((block) => ("text" in block ? (block.text as string) : ""))
+      .map((block) =>
+        "text" in block && typeof block.text === "string" ? block.text : ""
+      )
       .join("")
       .trim();
 

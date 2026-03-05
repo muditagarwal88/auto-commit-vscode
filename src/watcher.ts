@@ -9,10 +9,15 @@ export type CommitCallback = (repoRoot: string) => Promise<void>;
  * Listens to every file-save event and debounces per git repository.
  * Multiple saves in the same repo within `debounceSeconds` only trigger
  * one commit, fired after the last save.
+ *
+ * A per-repo in-progress lock prevents overlapping commits if the debounce
+ * timer fires while a previous commit is still running.
  */
 export class SaveWatcher implements vscode.Disposable {
   /** repoRoot → pending debounce timer */
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
+  /** repoRoot → commit currently in flight */
+  private readonly inProgress = new Set<string>();
   private readonly listener: vscode.Disposable;
 
   constructor(private readonly onCommit: CommitCallback) {
@@ -47,8 +52,22 @@ export class SaveWatcher implements vscode.Disposable {
 
     const timer = setTimeout(async () => {
       this.timers.delete(repoRoot);
+
+      // Skip if a commit for this repo is already running
+      if (this.inProgress.has(repoRoot)) {
+        return;
+      }
+
       if (hasChanges(repoRoot)) {
-        await this.onCommit(repoRoot);
+        this.inProgress.add(repoRoot);
+        try {
+          await this.onCommit(repoRoot);
+        } catch {
+          // onCommit (triggerCommit in extension.ts) already catches errors
+          // and surfaces them via the status bar + notification.
+        } finally {
+          this.inProgress.delete(repoRoot);
+        }
       }
     }, debounceMs);
 
