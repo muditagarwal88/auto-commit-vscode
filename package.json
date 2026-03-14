@@ -36,6 +36,18 @@
       {
         "command": "smartCommit.commitNow",
         "title": "Smart Commit: Commit Now"
+      },
+      {
+        "command": "smartCommit.setGeminiApiKey",
+        "title": "Smart Commit: Set Gemini API Key"
+      },
+      {
+        "command": "smartCommit.setBedrockCredentials",
+        "title": "Smart Commit: Set AWS Bedrock Credentials"
+      },
+      {
+        "command": "smartCommit.clearSecrets",
+        "title": "Smart Commit: Clear All Stored Credentials"
       }
     ],
     "configuration": {
@@ -91,11 +103,6 @@
           "default": "",
           "description": "Optional: preferred model family for the VS Code LM provider (e.g. 'gpt-4o', 'gemini'). Leave empty to use whichever model the editor has available."
         },
-        "smartCommit.gemini.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "Google Gemini API key. Required when smartCommit.llmProvider is 'gemini'. Get a key at https://aistudio.google.com/apikey."
-        },
         "smartCommit.gemini.modelId": {
           "type": "string",
           "default": "gemini-2.0-flash",
@@ -109,22 +116,7 @@
         "smartCommit.bedrock.modelId": {
           "type": "string",
           "default": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "description": "Bedrock model ID. Used when smartCommit.llmProvider is 'bedrock'."
-        },
-        "smartCommit.bedrock.accessKeyId": {
-          "type": "string",
-          "default": "",
-          "description": "AWS Access Key ID. Leave empty to use IAM role, environment variables, or ~/.aws/credentials."
-        },
-        "smartCommit.bedrock.secretAccessKey": {
-          "type": "string",
-          "default": "",
-          "description": "AWS Secret Access Key. Leave empty to use IAM role, environment variables, or ~/.aws/credentials."
-        },
-        "smartCommit.bedrock.sessionToken": {
-          "type": "string",
-          "default": "",
-          "description": "AWS Session Token (optional — only needed for temporary STS credentials)."
+          "description": "Bedrock model ID. Used when smartCommit.llmProvider is 'bedrock'. AWS credentials (Access Key ID, Secret Key) are stored securely via the 'Smart Commit: Set AWS Bedrock Credentials' command, not in settings."
         }
       }
     }

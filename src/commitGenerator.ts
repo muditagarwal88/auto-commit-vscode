@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { createProvider } from "./llm";
 
 export type CommitStyle = "conventional" | "descriptive";
@@ -56,12 +57,14 @@ ${diff}
 /**
  * Generate a smart commit message for the given staged diff.
  *
- * @param diff   Output of `git diff --cached`
- * @param style  "conventional" | "descriptive"
+ * @param diff    Output of `git diff --cached`
+ * @param style   "conventional" | "descriptive"
+ * @param secrets VS Code Secret Storage (used to retrieve API keys)
  */
 export async function generateCommitMessage(
   diff: string,
-  style: CommitStyle
+  style: CommitStyle,
+  secrets: vscode.SecretStorage
 ): Promise<string> {
   if (!diff.trim()) {
     throw new Error("Diff is empty — nothing to commit.");
@@ -72,12 +75,33 @@ export async function generateCommitMessage(
       ? conventionalPrompt(diff)
       : descriptivePrompt(diff);
 
-  const provider = createProvider();
+  const provider = await createProvider(secrets);
   const raw = await provider.complete(prompt);
 
   // Strip any markdown code fences the LLM may have added despite instructions
-  return raw
+  let message = raw
     .replace(/^```[^\n]*\n?/m, "")
     .replace(/\n?```$/m, "")
     .trim();
+
+  // --- Validate the generated commit message ---
+
+  if (!message) {
+    throw new Error("LLM returned an empty commit message.");
+  }
+
+  // Hard limit — a legitimate commit message is never this long
+  if (message.length > 10_000) {
+    throw new Error("Generated commit message exceeds 10 000 characters and was rejected.");
+  }
+
+  // Strip C0/C1 control characters (null bytes, escape sequences, etc.)
+  // but keep normal whitespace: \t (0x09), \n (0x0A), \r (0x0D)
+  message = message.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+
+  if (!message.trim()) {
+    throw new Error("Commit message contained only invalid characters after sanitization.");
+  }
+
+  return message;
 }

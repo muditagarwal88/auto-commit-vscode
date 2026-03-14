@@ -74,11 +74,20 @@ export class SaveWatcher implements vscode.Disposable {
     this.timers.set(repoRoot, timer);
   }
 
-  dispose(): void {
-    this.listener.dispose();
+  /**
+   * Cancel all pending debounce timers without disposing the listener.
+   * Called when the user disables the extension via command so in-flight
+   * timers don't fire after the extension is turned off.
+   */
+  pause(): void {
     for (const timer of this.timers.values()) {
       clearTimeout(timer);
     }
     this.timers.clear();
+  }
+
+  dispose(): void {
+    this.listener.dispose();
+    this.pause();
   }
 }

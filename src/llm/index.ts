@@ -10,15 +10,18 @@ export type { LLMProvider } from "./provider";
  * Factory — reads the current VS Code settings and returns the configured
  * LLM provider instance.
  *
+ * Credentials (API keys, AWS credentials) are read from VS Code's encrypted
+ * Secret Storage, NOT from plain-text settings. Use the extension commands
+ * "Smart Commit: Set Gemini API Key" and "Smart Commit: Set AWS Credentials"
+ * to store them securely.
+ *
  * Provider priority:
  *  1. "vscode"  (default) — uses the editor's built-in LM API, no credentials needed.
- *  2. "gemini"            — Google Gemini API, requires an API key.
- *  3. "bedrock"           — AWS Bedrock, requires AWS credentials.
- *
- * If the default "vscode" provider has no model available at commit time,
- * the error message guides the user to configure an alternative provider.
+ *  2. "gemini"            — Google Gemini API, requires an API key in Secret Storage.
+ *  3. "bedrock"           — AWS Bedrock, requires AWS credentials in Secret Storage
+ *                           (or IAM role / environment variables).
  */
-export function createProvider(): LLMProvider {
+export async function createProvider(secrets: vscode.SecretStorage): Promise<LLMProvider> {
   const cfg = vscode.workspace.getConfiguration("smartCommit");
   const providerName = cfg.get<string>("llmProvider", "vscode");
 
@@ -29,12 +32,12 @@ export function createProvider(): LLMProvider {
     }
 
     case "gemini": {
-      const apiKey = cfg.get<string>("gemini.apiKey", "").trim();
+      const apiKey = (await secrets.get("smartCommit.gemini.apiKey"))?.trim() ?? "";
       if (!apiKey) {
         throw new Error(
           "Gemini API key not configured.\n" +
-            'Add "smartCommit.gemini.apiKey" to your settings, or switch\n' +
-            '"smartCommit.llmProvider" back to "vscode" to use the editor\'s\n' +
+            "Run the command \"Smart Commit: Set Gemini API Key\" to store it securely,\n" +
+            "or switch \"smartCommit.llmProvider\" back to \"vscode\" to use the editor's\n" +
             "built-in model instead."
         );
       }
@@ -45,15 +48,20 @@ export function createProvider(): LLMProvider {
     }
 
     case "bedrock": {
+      const [accessKeyId, secretAccessKey, sessionToken] = await Promise.all([
+        secrets.get("smartCommit.bedrock.accessKeyId"),
+        secrets.get("smartCommit.bedrock.secretAccessKey"),
+        secrets.get("smartCommit.bedrock.sessionToken"),
+      ]);
       return new BedrockProvider({
         region: cfg.get<string>("bedrock.region", "us-east-1"),
         modelId: cfg.get<string>(
           "bedrock.modelId",
           "anthropic.claude-3-5-sonnet-20241022-v2:0"
         ),
-        accessKeyId: cfg.get<string>("bedrock.accessKeyId", ""),
-        secretAccessKey: cfg.get<string>("bedrock.secretAccessKey", ""),
-        sessionToken: cfg.get<string>("bedrock.sessionToken", ""),
+        accessKeyId: accessKeyId ?? "",
+        secretAccessKey: secretAccessKey ?? "",
+        sessionToken: sessionToken ?? "",
       });
     }
 
